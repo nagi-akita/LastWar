@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計算フォーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>完成までの時間計算フォーム</h1>
+    <div class="form-group">
+        <label for="days">日数:</label>
+        <input type="number" id="days" name="days" min="0" required>
+    </div>
+    <div class="form-group">
+        <label for="hours">時間:</label>
+        <input type="number" id="hours" name="hours" min="0" max="23" placeholder="0">
+    </div>
+    <div class="form-group">
+        <label for="rate">現在の増加速度（％）:</label>
+        <input type="number" id="rate" name="rate" min="0" placeholder="0">
+    </div>
+    <div class="form-group">
+        <button onclick="calculateTime()">計算</button>
+    </div>
+    <div class="result" id="result"></div>
+    <div class="result" id="resultWithMinister"></div>
+</div>
+
+<script>
+    function calculateTime() {
+        const daysInput = document.getElementById('days');
+        const hoursInput = document.getElementById('hours');
+        const rateInput = document.getElementById('rate');
+
+        if (daysInput.value === '') {
+            alert('日数を入力してください');
+            return;
+        }
+
+        const days = parseFloat(daysInput.value);
+        const hours = hoursInput.value === '' ? 0 : parseFloat(hoursInput.value);
+        const rate = rateInput.value === '' ? 0 : parseFloat(rateInput.value);
+
+        const totalHours = (days * 24) + hours;
+        const timeToComplete = totalHours / (1 + (rate / 100));
+        const timeToCompleteWithMinister = totalHours / (1 + ((rate + 50) / 100));
+
+        const resultDays = Math.floor(timeToComplete / 24);
+        const resultHours = Math.floor(timeToComplete % 24);
+        const resultMinutes = Math.round((timeToComplete * 60) % 60);
+
+        const resultDaysWithMinister = Math.floor(timeToCompleteWithMinister / 24);
+        const resultHoursWithMinister = Math.floor(timeToCompleteWithMinister % 24);
+        const resultMinutesWithMinister = Math.round((timeToCompleteWithMinister * 60) % 60);
+
+        document.getElementById('result').innerText = `完成までの時間: ${resultDays}日 ${resultHours}時間 ${resultMinutes}分`;
+        document.getElementById('resultWithMinister').innerText = `建造大臣使用時（＋50%）の時間: ${resultDaysWithMinister}日 ${resultHoursWithMinister}時間 ${resultMinutesWithMinister}分`;
+    }
+</script>
+
+</body>
+</html>
