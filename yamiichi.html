@@ -65,17 +65,24 @@ function updateTotal() {
 }
 
 function updateCost(totalCash) {
-    const baseRate = 750;
-    const extraRate = 1500;
-    const baseLimit = 5600;
-    const baseUnit = 800;
-    const extraUnit = 1000;
+    const baseRate = 750;   // 800キャッシュごとの料金
+    const extraRate = 1500; // 1000キャッシュごとの追加料金
+    const baseLimit = 11050; // 11050キャッシュまでの計算
+    const baseUnit = 800;   // 800キャッシュごとの単位
+    const extraUnit = 1000; // 1000キャッシュごとの単位
+    const freeLimit = 5450; // 5450キャッシュまでは0円
 
     let cost = 0;
-    if (totalCash <= baseLimit) {
-        cost = Math.ceil(totalCash / baseUnit) * baseRate;
+
+    // 5450キャッシュまでは無料
+    if (totalCash <= freeLimit) {
+        cost = 0;
+    } else if (totalCash <= baseLimit) {
+        // 5450〜11050キャッシュまでは750円計算
+        cost = Math.ceil((totalCash - freeLimit) / baseUnit) * baseRate;
     } else {
-        cost = Math.ceil(baseLimit / baseUnit) * baseRate;
+        // 11050キャッシュを超えた部分の計算
+        cost = Math.ceil((baseLimit - freeLimit) / baseUnit) * baseRate;
         cost += Math.ceil((totalCash - baseLimit) / extraUnit) * extraRate;
     }
 
@@ -478,7 +485,7 @@ function clearFields() {
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6" class="right-align">無料キャッシュ 5450キャッシュ　　　 合計：</td>
+                <td colspan="6" class="right-align">※無料キャッシュ 5450キャッシュ　合計：</td>
                 <td id="total">0 キャッシュ</td>
             </tr>
             <tr>
