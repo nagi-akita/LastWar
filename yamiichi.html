@@ -4,26 +4,58 @@
 <meta charset="UTF-8">
 <title>闇市割引アイテム</title>
 <style>
-    table, th, td {
-        border: 1px solid black;
+    /* テーブル全体のスタイル */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .table-container {
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        overflow-x: auto;
+        text-align: center;
+    }
+
+    table {
+        width: 100%;
         border-collapse: collapse;
     }
+
     th, td {
+        border: 1px solid black;
         padding: 8px;
         text-align: center;
     }
+
     .right-align {
         text-align: right;
+    }
+
+    /* スマホ対応のスタイル */
+    @media only screen and (max-width: 600px) {
+        th, td {
+            font-size: 12px;
+            padding: 5px;
+        }
+
+        /* ボタンがスマホで見やすくなるように調整 */
+        button {
+            width: 100%;
+            padding: 10px;
+        }
     }
 </style>
 <script>
 function updateTotal() {
-    const inputs = document.querySelectorAll('input[type="number"]');
+    const selects = document.querySelectorAll('select');
     let total = 0;
-    inputs.forEach(input => {
-        const row = input.parentNode.parentNode;
+    selects.forEach(select => {
+        const row = select.parentNode.parentNode;
         const unitPrice = parseInt(row.cells[3].innerText);
-        const count = parseInt(input.value) || 0; // Handle NaN when empty
+        const count = parseInt(select.value) || 0; // Handle NaN when empty
         const subtotal = count * unitPrice;
         row.cells[6].innerText = subtotal;
         total += subtotal;
@@ -31,13 +63,14 @@ function updateTotal() {
     document.getElementById('total').innerText = `${total} キャッシュ`; 
     updateCost(total);
 }
+
 function updateCost(totalCash) {
     const baseRate = 750;
     const extraRate = 1500;
     const baseLimit = 5600;
     const baseUnit = 800;
     const extraUnit = 1000;
-    
+
     let cost = 0;
     if (totalCash <= baseLimit) {
         cost = Math.ceil(totalCash / baseUnit) * baseRate;
@@ -48,243 +81,417 @@ function updateCost(totalCash) {
 
     document.getElementById('calculatedCost').innerText = `${cost} 円`; 
 }
+
 function clearFields() {
-    const inputs = document.querySelectorAll('input[type="number"]');
-    inputs.forEach(input => {
-        input.value = '';
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.value = '0';
     });
     updateTotal();
 }
 </script>
 </head>
 <body>
-<table>
-    <thead>
-        <tr>
-            <th>名前</th>
-            <th>確率（％）</th>
-            <th>出現回数</th>
-            <th>単価</th>
-            <th>合計キャッシュ</th>
-            <th>必要個数</th>
-            <th>必要キャッシュ</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>スキルチップ選択</td>
-            <td>0.22</td>
-            <td>1</td>
-            <td>3000</td>
-            <td>3000</td>
-            <td><input type="number" min="0" max="1" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>スキルチップUR</td>
-            <td>0.22</td>
-            <td>1</td>
-            <td>1500</td>
-            <td>1500</td>
-            <td><input type="number" min="0" max="1" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>勝利の塔</td>
-            <td>0.66</td>
-            <td>3</td>
-            <td>800</td>
-            <td>2400</td>
-            <td><input type="number" min="0" max="3" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>黄金元帥像</td>
-            <td>0.66</td>
-            <td>3</td>
-            <td>800</td>
-            <td>2400</td>
-            <td><input type="number" min="0" max="3" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>URかけら</td>
-            <td>11.17</td>
-            <td>50</td>
-            <td>60</td>
-            <td>3000</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>専用武器選択箱</td>
-            <td>11.11</td>
-            <td>50</td>
-            <td>60</td>
-            <td>3000</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>装飾箱UR</td>
-            <td>0.22</td>
-            <td>1</td>
-            <td>200</td>
-            <td>200</td>
-            <td><input type="number" min="0" max="1" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>スキルチップSSR</td>
-            <td>1.11</td>
-            <td>5</td>
-            <td>250</td>
-            <td>1250</td>
-            <td><input type="number" min="0" max="5" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>鉄UR5個</td>
-            <td>4.44</td>
-            <td>20</td>
-            <td>120</td>
-            <td>2400</td>
-            <td><input type="number" min="0" max="20" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>パンUR5個</td>
-            <td>4.44</td>
-            <td>20</td>
-            <td>120</td>
-            <td>2400</td>
-            <td><input type="number" min="0" max="20" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>強化箱UR</td>
-            <td>1.11</td>
-            <td>5</td>
-            <td>200</td>
-            <td>1000</td>
-            <td><input type="number" min="0" max="5" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>スキルメダル箱</td>
-            <td>1.11</td>
-            <td>5</td>
-            <td>150</td>
-            <td>750</td>
-            <td><input type="number" min="0" max="5" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>知恵の勲章100個</td>
-            <td>1.11</td>
-            <td>5</td>
-            <td>300</td>
-            <td>1500</td>
-            <td><input type="number" min="0" max="5" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>装備レシピUR</td>
-            <td>3.33</td>
-            <td>15</td>
-            <td>600</td>
-            <td>9000</td>
-            <td><input type="number" min="0" max="15" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>ギア25個</td>
-            <td>3.33</td>
-            <td>15</td>
-            <td>500</td>
-            <td>7500</td>
-            <td><input type="number" min="0" max="15" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>汎用装飾部品30</td>
-            <td>2.22</td>
-            <td>10</td>
-            <td>200</td>
-            <td>2000</td>
-            <td><input type="number" min="0" max="10" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>強化石400個</td>
-            <td>11.11</td>
-            <td>50</td>
-            <td>50</td>
-            <td>2500</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>スキルメダル500個</td>
-            <td>11.11</td>
-            <td>50</td>
-            <td>50</td>
-            <td>2500</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>セラミック30個</td>
-            <td>4.44</td>
-            <td>20</td>
-            <td>150</td>
-            <td>3000</td>
-            <td><input type="number" min="0" max="20" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>資源箱SSR</td>
-            <td>11.11</td>
-            <td>50</td>
-            <td>50</td>
-            <td>2500</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>汎用加速5分12個</td>
-            <td>4.44</td>
-            <td>20</td>
-            <td>10</td>
-            <td>200</td>
-            <td><input type="number" min="0" max="20" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>汎用加速5分10個</td>
-            <td>11.11</td>
-            <td>50</td>
-            <td>10</td>
-            <td>500</td>
-            <td><input type="number" min="0" max="50" oninput="updateTotal()"></td>
-            <td></td>
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="6" class="right-align">合計：</td>
-            <td id="total">0 キャッシュ</td>
-        </tr>
-        <tr>
-            <td colspan="6" class="right-align">課金：</td>
-            <td id="calculatedCost">0 円</td>
-        </tr>
-        <tr>
-            <td colspan="7" class="right-align">
-                <button onclick="clearFields()">クリア</button>
-            </td>
-        </tr>
-    </tfoot>
-</table>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>確率（％）</th>
+                <th>出現回数</th>
+                <th>単価</th>
+                <th>合計キャッシュ</th>
+                <th>必要個数</th>
+                <th>必要キャッシュ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>スキルチップ選択</td>
+                <td>0.22</td>
+                <td>1</td>
+                <td>3000</td>
+                <td>3000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>スキルチップUR</td>
+                <td>0.22</td>
+                <td>1</td>
+                <td>1500</td>
+                <td>1500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>勝利の塔</td>
+                <td>0.66</td>
+                <td>3</td>
+                <td>800</td>
+                <td>2400</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>黄金元帥像</td>
+                <td>0.66</td>
+                <td>3</td>
+                <td>800</td>
+                <td>2400</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>URかけら</td>
+                <td>11.17</td>
+                <td>50</td>
+                <td>60</td>
+                <td>3000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>専用武器選択箱</td>
+                <td>11.11</td>
+                <td>50</td>
+                <td>60</td>
+                <td>3000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>装飾箱UR</td>
+                <td>0.22</td>
+                <td>1</td>
+                <td>200</td>
+                <td>200</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>スキルチップSSR</td>
+                <td>1.11</td>
+                <td>5</td>
+                <td>250</td>
+                <td>1250</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>鉄UR5個</td>
+                <td>4.44</td>
+                <td>20</td>
+                <td>120</td>
+                <td>2400</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>パンUR5個</td>
+                <td>4.44</td>
+                <td>20</td>
+                <td>120</td>
+                <td>2400</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>強化箱UR</td>
+                <td>1.11</td>
+                <td>5</td>
+                <td>200</td>
+                <td>1000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>スキルメダル箱</td>
+                <td>1.11</td>
+                <td>5</td>
+                <td>150</td>
+                <td>750</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>知恵の勲章100個</td>
+                <td>1.11</td>
+                <td>5</td>
+                <td>300</td>
+                <td>1500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>装備レシピUR</td>
+                <td>3.33</td>
+                <td>15</td>
+                <td>600</td>
+                <td>9000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>ギア25個</td>
+                <td>3.33</td>
+                <td>15</td>
+                <td>500</td>
+                <td>7500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>汎用装飾部品30</td>
+                <td>2.22</td>
+                <td>10</td>
+                <td>200</td>
+                <td>2000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>強化石400個</td>
+                <td>11.11</td>
+                <td>50</td>
+                <td>50</td>
+                <td>2500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>スキルメダル500個</td>
+                <td>11.11</td>
+                <td>50</td>
+                <td>50</td>
+                <td>2500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>セラミック30個</td>
+                <td>4.44</td>
+                <td>20</td>
+                <td>150</td>
+                <td>3000</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>資源箱SSR</td>
+                <td>11.11</td>
+                <td>50</td>
+                <td>50</td>
+                <td>2500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>汎用加速5分12個</td>
+                <td>4.44</td>
+                <td>20</td>
+                <td>10</td>
+                <td>200</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>汎用加速5分10個</td>
+                <td>11.11</td>
+                <td>50</td>
+                <td>10</td>
+                <td>500</td>
+                <td>
+                    <select onchange="updateTotal()">
+                        <option value="0">0</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="40">40</option>
+                        <option value="50">50</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="right-align">合計：</td>
+                <td id="total">0 キャッシュ</td>
+            </tr>
+            <tr>
+                <td colspan="6" class="right-align">課金：</td>
+                <td id="calculatedCost">0 円</td>
+            </tr>
+            <tr>
+                <td colspan="7" class="right-align">
+                    <button onclick="clearFields()">クリア</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
 </body>
 </html>
