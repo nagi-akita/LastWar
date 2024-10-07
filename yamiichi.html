@@ -67,10 +67,10 @@ function updateTotal() {
 function updateCost(totalCash) {
     const baseRate = 750;   // 800キャッシュごとの料金
     const extraRate = 1500; // 1000キャッシュごとの追加料金
-    const baseLimit = 11050; // 11050キャッシュまでの計算
+    const baseLimit = 27400; // 11050キャッシュまでの計算
     const baseUnit = 800;   // 800キャッシュごとの単位
     const extraUnit = 1000; // 1000キャッシュごとの単位
-    const freeLimit = 5450; // 5450キャッシュまでは0円
+    const freeLimit = 21800; // 5450キャッシュまでは0円
 
     let cost = 0;
 
@@ -485,11 +485,11 @@ function clearFields() {
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6" class="right-align">※無料キャッシュ 5450キャッシュ　合計：</td>
+                <td colspan="6" class="right-align">※無料キャッシュ 5450キャッシュ×4週（21800）　合計：</td>
                 <td id="total">0 キャッシュ</td>
             </tr>
             <tr>
-                <td colspan="6" class="right-align">課金：</td>
+                <td colspan="6" class="right-align">21800キャッシュ貰える前提（仮）　課金：</td>
                 <td id="calculatedCost">0 円</td>
             </tr>
             <tr>
