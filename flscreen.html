@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最新のスクリーンショット</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .screenshot {
+            margin-bottom: 20px;
+        }
+
+        .screenshot img {
+            width: 100%;
+            max-width: 600px; /* スクリーンショットの幅を調整 */
+            height: auto;
+        }
+
+        .title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>最新のスクリーンショット</h1>
+    <div id="screenshots"></div>
+
+    <script>
+        // S3のバケットURL
+        const s3BaseUrl = 'https://lastwar468fl.s3.ap-northeast-1.amazonaws.com/';
+        const screenshotsDiv = document.getElementById('screenshots');
+
+        // list.txt をS3から取得して内容を処理
+        fetch(s3BaseUrl + 'list.txt')
+            .then(response => response.text())
+            .then(data => {
+                const lines = data.trim().split('\n'); // 改行ごとに分割してリストにする
+                lines.forEach(line => {
+                    const [title, fileName] = line.split(' '); // タイトルとファイル名を分割
+
+                    // タイトルと画像を表示
+                    const screenshotElement = `
+                        <div class="screenshot">
+                            <div class="title">${title}</div>
+                            <img src="${fileName.trim()}" alt="${title}">
+                        </div>`;
+                    screenshotsDiv.innerHTML += screenshotElement;
+                });
+            })
+            .catch(error => {
+                console.error('list.txtの読み込みに失敗しました:', error);
+            });
+    </script>
+</body>
+</html>
