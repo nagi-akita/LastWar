@@ -1,0 +1,177 @@
+<div id="notification"></div> <!-- 任命メッセージを表示する要素 -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>468夫人状況</title>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1237.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        p, span {
+            text-align: center;
+            display: block;
+            font-size: 1.2em;
+        }
+        .blue {
+            color: blue;
+        }
+        .red {
+            color: red;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            color: #fff;
+            background-color: #0044ff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:active {
+            background-color: #0056b3;
+        }
+        @media (min-width: 600px) {
+            button {
+                width: 50%;
+                margin: 0 auto;
+            }
+        }
+        #notification {
+            text-align: center;
+            font-size: 1.2em;
+            color: green;
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // AWS SDKとCognitoの設定
+            const cognitoIdentityPoolId = 'ap-northeast-1:f1122a1a-ddb6-4ce7-aab8-af5ca5c3e6a3'; // Cognito IDプールID
+            const awsRegion = 'ap-northeast-1'; // AWSリージョン
+            const s3BucketName = 'lastwar468fl'; // S3バケット名
+
+            const now = new Date();
+
+            // 5分以内のスクリーンショットがあるかをチェックする関数
+            function isWithinFiveMinutes(title) {
+                const match = title.match(/(\d{4})年(\d{2})月(\d{2})日(\d{2})時(\d{2})分/);
+                if (match) {
+                    const [_, year, month, day, hour, minute] = match;
+                    const screenshotTime = new Date(year, month - 1, day, hour, minute);
+                    const diff = now - screenshotTime; // ミリ秒での差
+                    return diff <= 3 * 60 * 1000 && diff >= 0; // 5分以内で未来の時間でない
+                }
+                return false;
+            }
+
+            const s3BaseUrl = 'https://lastwar468fl.s3.ap-northeast-1.amazonaws.com/';
+            const statusDiv = document.getElementById('status');
+            const notificationDiv = document.getElementById('notification');
+
+            // flflg.txt をS3から取得して中身をチェック
+            fetch(s3BaseUrl + 'flflg.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const content = data.trim(); // 中身の余分な空白を削除
+                    if (content === '1') {
+                        notificationDiv.textContent = "夫人の任命を設定しました。少しお待ちください。";
+                    }
+                })
+                .catch(error => {
+                    console.error('ファイルの読み込みに失敗しました:', error);
+                });
+                
+            // list.txt をS3から取得して内容を処理
+            fetch(s3BaseUrl + 'list.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.trim().split('\n'); // 改行ごとに分割してリストにする
+                    let recentScreenshotFound = false;
+
+                    lines.forEach(line => {
+                        const [title, fileName] = line.split(' '); // タイトルとファイル名を分割
+                        // 5分以内のスクリーンショットがあるか確認
+                        if (isWithinFiveMinutes(title)) {
+                            recentScreenshotFound = true;
+                        }
+                    });
+
+                    // ステータスを表示
+                    if (recentScreenshotFound) {
+                        statusDiv.textContent = "【自動夫人起動中】";
+                        statusDiv.classList.add("blue");
+                    } else {
+                        statusDiv.textContent = "【自動夫人停止中】";
+                        statusDiv.classList.add("red");
+                    }
+                })
+                .catch(error => {
+                    console.error('ファイルの読み込みに失敗しました:', error);
+                });
+
+            // Cognito認証を使用してS3へファイルアップロードを行う
+            AWS.config.region = awsRegion;
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: cognitoIdentityPoolId,
+            });
+
+            // ファイルアップロード処理
+            function uploadFile() {
+                // 固定されたファイル名 "flflg.txt" とその内容
+                const fileName = 'flflg.txt';
+                const fileContent = '1';  // ファイルの中身を1にする
+
+                // Blobオブジェクトを作成してファイルの形式にする
+                const blob = new Blob([fileContent], { type: 'text/plain' });
+
+                // S3オブジェクトを作成
+                const s3 = new AWS.S3({
+                    apiVersion: '2006-03-01',
+                    params: { Bucket: s3BucketName },
+                });
+
+                const fileParams = {
+                    Key: fileName,
+                    Body: blob,
+                    ACL: 'public-read', // 必要に応じて適切なACLを設定
+                    ContentType: 'text/plain'
+                };
+
+                // ファイルをアップロード
+                s3.upload(fileParams, function (err, data) {
+                    if (err) {
+                        alert('設定に失敗しました: ' + err.message);
+                    } else {
+                        alert('夫人の任命に成功しました。少しお待ちください。');
+                    }
+                    window.location.reload();
+                });
+
+            }
+
+            // アップロードボタンにイベントを設定
+            document.querySelector("button").addEventListener("click", uploadFile);
+        });
+    </script>
+</head>
+<body>
+    <h1>468自動夫人</h1>
+    <div id="notification"></div> 
+    <p>稼働状況：<span id="status"></span></p>
+    <button>夫人を一度だけ任命する</button>
+</body>
+</html>
