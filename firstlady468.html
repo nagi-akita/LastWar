@@ -38,7 +38,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 20px 0; /* 上下に20pxの隙間を追加 */
+            margin: 20px 0;
         }
         button.gray {
             background-color: #888;
@@ -49,17 +49,44 @@
         button:active {
             background-color: #0056b3;
         }
-        @media (min-width: 600px) {
-            button {
-                width: 50%;
-                margin: 20px auto; /* 中央に揃え、上下に隙間を維持 */
-            }
+        button.danger {
+            background-color: #ff0000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: calc(100% - 20px);
+            margin: 0 10px;
+            padding: 15px;
+            font-size: 1.2em;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
+
+        button.danger:active {
+            background-color: #cc0000;
+        }
+
         #notification {
             text-align: center;
             font-size: 1.2em;
             color: green;
             margin-top: 20px;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            z-index: 1000;
         }
     </style>
     <script>
@@ -84,12 +111,17 @@
             const s3BaseUrl = 'https://lastwar468fl.s3.ap-northeast-1.amazonaws.com/';
             const statusDiv = document.getElementById('status');
             const notificationDiv = document.getElementById('notification');
+            const overlayDiv = document.getElementById('overlay');
 
             fetch(s3BaseUrl + 'flflg.txt')
                 .then(response => response.text())
                 .then(data => {
                     const content = data.trim();
-                    if (content === '1') {
+                    if (content === '3') {
+                        overlayDiv.style.display = 'flex';
+                        overlayDiv.textContent = "強制再起動中です。しばらくお待ちください。";
+                        document.querySelectorAll('button').forEach(button => button.disabled = true);
+                    } else if (content === '1') {
                         notificationDiv.textContent = "副大統領の任命を設定しました。少しお待ちください。";
                     } else if (content === '2') {
                         notificationDiv.textContent = "キックコマンドを送信しました。少しお待ちください。";
@@ -173,6 +205,20 @@
                         .catch(err => alert('設定に失敗しました: ' + err));
                 }
             });
+
+            document.querySelector('#restartButton').addEventListener('click', () => {
+                const password = prompt('強制再起動にはパスワードが必要です。入力してください:');
+                if (password === 'S0Y') {
+                    uploadFile('3')
+                        .then(() => {
+                            alert('強制再起動を開始しました。しばらくお待ちください。');
+                            window.location.reload();
+                        })
+                        .catch(err => alert('設定に失敗しました: ' + err));
+                } else {
+                    alert('パスワードが間違っています。');
+                }
+            });
         });
     </script>
 </head>
@@ -181,6 +227,9 @@
     <div id="notification"></div> 
     <p>稼働状況：<span id="status"></span></p>
     <button id="appointButton">副大統領を一度だけ任命する</button>
-    <button id="kickButton" class="gray">候補者をキック</button>
+    <button id="kickButton" class="gray">候補者をキックする</button>
+    <button id="restartButton" class="danger">強制再起動</button>
+    <div id="overlay"></div>
 </body>
 </html>
+
