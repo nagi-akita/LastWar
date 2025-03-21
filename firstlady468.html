@@ -103,7 +103,7 @@
                      const [_, year, month, day, hour, minute] = match;
                      const screenshotTime = new Date(year, month - 1, day, hour, minute);
                      const diff = now - screenshotTime;
-                     return diff <= 2 * 60 * 1000 && diff >= 0;
+                     return diff <= 3 * 60 * 1000 && diff >= 0;
                  }
                  return false;
              }
