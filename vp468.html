@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>468副大統領状況</title>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1237.0.min.js"></script>
+    <style>
+        #language-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .lang-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            width: auto;
+            display: inline-block;
+            color: white;
+            font-weight: bold;
+        }
+        .lang-btn.ja {
+            background-color: #ff0000;
+        }
+        .lang-btn.ja:hover {
+            background-color: #cc0000;
+        }
+        .lang-btn.ja:active {
+            background-color: #990000;
+        }
+        .lang-btn.zh {
+            background-color: #ffcc00;
+            color: #333;
+        }
+        .lang-btn.zh:hover {
+            background-color: #e6b800;
+        }
+        .lang-btn.zh:active {
+            background-color: #cc9900;
+        }
+        .lang-btn.en {
+            background-color: #0066cc;
+        }
+        .lang-btn.en:hover {
+            background-color: #0052a3;
+        }
+        .lang-btn.en:active {
+            background-color: #003d7a;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        h2 {
+            font-size: 1.3em;
+            margin: 15px 0 10px 0;
+        }
+        p, span {
+            text-align: center;
+            display: block;
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+        .blue {
+            color: blue;
+        }
+        .red {
+            color: red;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            color: #fff;
+            background-color: #0044ff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 15px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button.gray {
+            background-color: #888;
+        }
+        button.gray:active {
+            background-color: #666;
+        }
+        button:active {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #ff0000;
+            margin: 15px 0;
+            padding: 12px;
+            font-size: 1.1em;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            /* 固定位置を解除 */
+            position: relative;
+            bottom: auto;
+            left: auto;
+            width: 100%;
+        }
+        button.danger:active {
+            background-color: #cc0000;
+        }
+        #notification {
+            text-align: center;
+            font-size: 1.1em;
+            color: green;
+            margin-top: 15px;
+        }
+        #maintenance {
+            text-align: center;
+            font-size: 1.5em;
+            color: #ff0000;
+            margin: 15px 0;
+            font-weight: bold;
+            background-color: #ffe0e0;
+            padding: 15px;
+            border: 2px solid #ff0000;
+            border-radius: 5px;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3em;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        /* 画像タップ機能のスタイル */
+        #image-container {
+            position: relative;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #ccc;
+            overflow: hidden;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        #image-container.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        #spinner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            display: none;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #countdown {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #game-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+        .marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border: 2px solid red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px black;
+        }
+        #coordinates-display {
+            margin: 10px auto;
+            padding: 8px;
+            background-color: #eee;
+            border-radius: 5px;
+            display: block;
+            width: 90%;
+            max-width: 300px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #tap-section {
+            display: none;
+            margin: 15px 0;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* スマートフォン向けの調整 */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+                width: 100vw;
+            }
+            h1 {
+                font-size: 1.3em;
+                width: 100%;
+            }
+            h2 {
+                font-size: 1.1em;
+                width: 100%;
+            }
+            p, span {
+                font-size: 1em;
+                width: 100%;
+            }
+            button {
+                padding: 10px;
+                font-size: 1em;
+                width: 100%;
+            }
+            .marker {
+                width: 20px;
+                height: 20px;
+                font-size: 12px;
+                border-width: 2px;
+            }
+            #coordinates-display {
+                font-size: 12px;
+                padding: 6px;
+                width: 100%;
+                max-width: 100%;
+            }
+            #image-container {
+                width: 100%;
+                max-width: 100%;
+            }
+            #tap-section {
+                width: 100%;
+                padding: 0;
+            }
+        }
+    </style>
+    <script>
+        // 多言語対応のテキスト定義
+        const translations = {
+            ja: {
+                title: "468自動副大統領",
+                status: "稼働状況：",
+                running: "【自動副大統領起動中】",
+                stopped: "【自動副大統領停止中】",
+                appoint: "副大統領を一度だけ任命する",
+                kick: "候補者をキックする",
+                maintenance: "メンテナンスモードにする",
+                maintenanceMode: "メンテナンスモード中です",
+                endMaintenance: "メンテナンスモード終了",
+                restart: "強制再起動",
+                tapInstruction: "タップ指示",
+                tapAnywhere: "画像の任意の場所をタップできます（20秒待ちます）",
+                tapPosition: "ここにクリック位置が表示されます",
+                appointSuccess: "副大臣の任命に成功しました。少しお待ちください。",
+                kickConfirm: "本当に候補者をキックしますか？",
+                kickSent: "キックコマンドを送信しました。少しお待ちください。",
+                passwordPrompt: "強制再起動にはパスワードが必要です。入力してください:",
+                passwordError: "パスワードが間違っています。",
+                restartStarted: "強制再起動を開始しました。しばらくお待ちください。",
+                maintenanceSet: "メンテナンスモードを設定しました。",
+                maintenanceEnded: "メンテナンスモードを終了しました。",
+                restarting: "強制再起動中です。しばらくお待ちください。",
+                appointSet: "副大統領の任命を設定しました。少しお待ちください。",
+                kickSent: "キックコマンドを送信しました。少しお待ちください。",
+                settingFailed: "設定に失敗しました: "
+            },
+            zh: {
+                title: "468自动副总统",
+                status: "运行状态：",
+                running: "【自动副总统运行中】",
+                stopped: "【自动副总统已停止】",
+                appoint: "仅任命一次副总统",
+                kick: "踢出候选人",
+                maintenance: "进入维护模式",
+                maintenanceMode: "维护模式中",
+                endMaintenance: "结束维护模式",
+                restart: "强制重启",
+                tapInstruction: "点击指示",
+                tapAnywhere: "可以点击图像上的任意位置（等待20秒）",
+                tapPosition: "点击位置将显示在这里",
+                appointSuccess: "成功任命副总统。请稍等。",
+                kickConfirm: "您确定要踢出候选人吗？",
+                kickSent: "已发送踢出命令。请稍等。",
+                passwordPrompt: "强制重启需要密码。请输入：",
+                passwordError: "密码错误。",
+                restartStarted: "已开始强制重启。请稍等。",
+                maintenanceSet: "已设置维护模式。",
+                maintenanceEnded: "已结束维护模式。",
+                restarting: "强制重启中。请稍等。",
+                appointSet: "已设置副总统任命。请稍等。",
+                kickSent: "已发送踢出命令。请稍等。",
+                settingFailed: "设置失败: "
+            },
+            en: {
+                title: "468 Auto Vice President",
+                status: "Operation Status:",
+                running: "【Auto VP Running】",
+                stopped: "【Auto VP Stopped】",
+                appoint: "Appoint Vice President Once",
+                kick: "Kick Candidate",
+                maintenance: "Enter Maintenance Mode",
+                maintenanceMode: "In Maintenance Mode",
+                endMaintenance: "End Maintenance Mode",
+                restart: "Force Restart",
+                tapInstruction: "Tap Instructions",
+                tapAnywhere: "Tap anywhere on the image (wait 20 seconds)",
+                tapPosition: "Click position will be displayed here",
+                appointSuccess: "Successfully appointed Vice President. Please wait.",
+                kickConfirm: "Are you really gonna take the candidate off the list?",
+                kickSent: "Kick command sent. Please wait.",
+                passwordPrompt: "Force restart requires a password. Please enter:",
+                passwordError: "Incorrect password.",
+                restartStarted: "Force restart initiated. Please wait.",
+                maintenanceSet: "Maintenance mode set.",
+                maintenanceEnded: "Maintenance mode ended.",
+                restarting: "Force restarting. Please wait.",
+                appointSet: "Vice President appointment set. Please wait.",
+                kickSent: "Kick command sent. Please wait.",
+                settingFailed: "Setting failed: "
+            }
+        };
+
+        // 現在の言語（ローカルストレージから取得、なければ日本語）
+        let currentLang = localStorage.getItem('vp468_language') || 'ja';
+
+        // 言語を切り替える関数
+        function changeLanguage(lang) {
+            if (!translations[lang]) return;
+            
+            currentLang = lang;
+            // ローカルストレージに言語設定を保存
+            localStorage.setItem('vp468_language', lang);
+            
+            // 言語ボタンのアクティブ状態を更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.lang-btn.${lang}`).classList.add('active');
+            
+            const t = translations[lang];
+            
+            // タイトルを更新
+            document.getElementById('title').textContent = t.title;
+            
+            // ステータス関連のテキストを更新
+            document.getElementById('status-label').textContent = t.status;
+            const statusElement = document.getElementById('status');
+            if (statusElement.classList.contains('blue')) {
+                statusElement.textContent = t.running;
+            } else {
+                statusElement.textContent = t.stopped;
+            }
+            
+            // ボタンのテキストを更新
+            document.getElementById('appointButton').textContent = t.appoint;
+            document.getElementById('kickButton').textContent = t.kick;
+            document.getElementById('maintenanceButton').textContent = t.maintenance;
+            document.getElementById('restartButton').textContent = t.restart;
+            document.getElementById('endMaintenanceButton').textContent = t.endMaintenance;
+            
+            // メンテナンスモードのテキストを更新
+            const maintenanceDiv = document.getElementById('maintenance');
+            if (maintenanceDiv.style.display !== 'none') {
+                maintenanceDiv.textContent = t.maintenanceMode;
+            }
+            
+            // タップセクションのテキストを更新
+            document.getElementById('tap-instruction').textContent = t.tapInstruction;
+            document.getElementById('tap-anywhere').textContent = t.tapAnywhere;
+            document.getElementById('coordinates-display').textContent = t.tapPosition;
+            
+            // オーバーレイのテキストを更新
+            const overlayDiv = document.getElementById('overlay');
+            if (overlayDiv.style.display === 'flex') {
+                overlayDiv.textContent = t.restarting;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const cognitoIdentityPoolId = 'ap-northeast-1:f1122a1a-ddb6-4ce7-aab8-af5ca5c3e6a3';
+            const awsRegion = 'ap-northeast-1';
+            const s3BucketName = 'lastwar468fl';
+
+            const now = new Date();
+
+            function isWithinFiveMinutes(title) {
+                const match = title.match(/(\d{4})年(\d{2})月(\d{2})日(\d{2})時(\d{2})分/);
+                if (match) {
+                    const [_, year, month, day, hour, minute] = match;
+                    const screenshotTime = new Date(year, month - 1, day, hour, minute);
+                    const diff = now - screenshotTime;
+                    return diff <= 3 * 60 * 1000 && diff >= 0;
+                }
+                return false;
+            }
+
+            const s3BaseUrl = 'https://lastwar468fl.s3.ap-northeast-1.amazonaws.com/';
+            const statusDiv = document.getElementById('status');
+            const notificationDiv = document.getElementById('notification');
+            const overlayDiv = document.getElementById('overlay');
+
+            const tapSectionDiv = document.getElementById('tap-section');
+            const maintenanceDiv = document.getElementById('maintenance');
+
+            const restartButton = document.getElementById('restartButton');
+            const endMaintenanceButton = document.getElementById('endMaintenanceButton');
+
+            fetch(s3BaseUrl + 'vpflg.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const content = data.trim();
+                    if (content === '3') {
+                        overlayDiv.style.display = 'flex';
+                        overlayDiv.textContent = "強制再起動中です。しばらくお待ちください。";
+                        document.querySelectorAll('button').forEach(button => button.disabled = true);
+                    } else if (content === '1') {
+                        notificationDiv.textContent = "副大統領の任命を設定しました。少しお待ちください。";
+                    } else if (content === '2') {
+                        notificationDiv.textContent = "キックコマンドを送信しました。少しお待ちください。";
+                    } else if (content === '4') {
+                        maintenanceDiv.style.display = 'block';
+                        maintenanceDiv.textContent = "メンテナンスモード中です";
+                        tapSectionDiv.style.display = 'block';
+                        
+                        // メンテナンスモード中は強制再起動ボタンを非表示にし、メンテナンスモード終了ボタンを表示
+                        restartButton.style.display = 'none';
+                        endMaintenanceButton.style.display = 'block';
+                        
+                        // メンテナンスモード中は以下の要素を非表示
+                        document.querySelector('p').style.display = 'none'; // 稼働状況の表示を非表示
+                        document.getElementById('appointButton').style.display = 'none'; // 副大統領を一度だけ任命するボタン
+                        document.getElementById('kickButton').style.display = 'none'; // 候補者をキックするボタン
+                        document.getElementById('maintenanceButton').style.display = 'none'; // メンテナンスモードにするボタン
+                        
+                        // list.txtから最新の画像URLを取得して表示
+                        fetch(s3BaseUrl + 'list.txt')
+                            .then(response => response.text())
+                            .then(data => {
+                                const lines = data.trim().split('\n');
+                                if (lines.length > 0) {
+                                    const [title, fileName] = lines[0].split(' ');
+                                    // 画像を更新
+                                    document.getElementById('game-image').src = fileName.trim();
+                                    console.log('最新の画像に更新しました: ' + fileName.trim());
+                                }
+                            })
+                            .catch(error => {
+                                console.error('list.txtの読み込みに失敗しました:', error);
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('ファイルの読み込みに失敗しました:', error);
+                });
+
+            fetch(s3BaseUrl + 'list.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.trim().split('\n');
+                    let recentScreenshotFound = false;
+
+                    lines.forEach(line => {
+                        const [title, fileName] = line.split(' ');
+                        if (isWithinFiveMinutes(title)) {
+                            recentScreenshotFound = true;
+                        }
+                    });
+
+                    if (recentScreenshotFound) {
+                        statusDiv.textContent = "【自動副大統領起動中】";
+                        statusDiv.classList.add("blue");
+                    } else {
+                        statusDiv.textContent = "【自動副大統領停止中】";
+                        statusDiv.classList.add("red");
+                    }
+                })
+                .catch(error => {
+                    console.error('ファイルの読み込みに失敗しました:', error);
+                });
+
+            AWS.config.region = awsRegion;
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: cognitoIdentityPoolId,
+            });
+
+            const s3 = new AWS.S3({
+                apiVersion: '2006-03-01',
+                params: { Bucket: s3BucketName },
+            });
+
+            function uploadFile(content, key = 'vpflg.txt') {
+                const fileParams = {
+                    Key: key,
+                    Body: new Blob([content], { type: 'text/plain' }),
+                    ACL: 'public-read',
+                    ContentType: 'text/plain'
+                };
+
+                return new Promise((resolve, reject) => {
+                    s3.upload(fileParams, function (err, data) {
+                        if (err) {
+                            reject(err.message);
+                        } else {
+                            resolve('Success');
+                        }
+                    });
+                });
+            }
+
+            document.querySelector('#appointButton').addEventListener('click', () => {
+                uploadFile('1')
+                    .then(() => {
+                        alert(translations[currentLang].appointSuccess);
+                        window.location.reload();
+                    })
+                    .catch(err => alert(translations[currentLang].settingFailed + err));
+            });
+
+            document.querySelector('#kickButton').addEventListener('click', () => {
+                const confirmation = confirm(translations[currentLang].kickConfirm);
+                if (confirmation) {
+                    uploadFile('2')
+                        .then(() => {
+                            alert(translations[currentLang].kickSent);
+                            window.location.reload();
+                        })
+                        .catch(err => alert(translations[currentLang].settingFailed + err));
+                }
+            });
+
+            document.querySelector('#restartButton').addEventListener('click', () => {
+                const password = prompt(translations[currentLang].passwordPrompt);
+                if (password === 'S0Y') {
+                    uploadFile('3')
+                        .then(() => {
+                            alert(translations[currentLang].restartStarted);
+                            window.location.reload();
+                        })
+                        .catch(err => alert(translations[currentLang].settingFailed + err));
+                } else {
+                    alert(translations[currentLang].passwordError);
+                }
+            });
+
+            document.querySelector('#maintenanceButton').addEventListener('click', () => {
+                uploadFile('4')
+                    .then(() => {
+                        alert(translations[currentLang].maintenanceSet);
+                        window.location.reload();
+                    })
+                    .catch(err => alert(translations[currentLang].settingFailed + err));
+            });
+            
+            document.querySelector('#endMaintenanceButton').addEventListener('click', () => {
+                uploadFile('0')
+                    .then(() => {
+                        alert(translations[currentLang].maintenanceEnded);
+                        window.location.reload();
+                    })
+                    .catch(err => alert(translations[currentLang].settingFailed + err));
+            });
+            
+            // 画像タップ機能
+            const container = document.getElementById('image-container');
+            const image = document.getElementById('game-image');
+            const coordsDisplay = document.getElementById('coordinates-display');
+            
+            // マーカーのカウンター
+            let markerCounter = 1;
+            
+            // 画像上でのクリック/タッチイベント
+            if (container) {
+                // クリックイベント
+                container.addEventListener('click', handleTap);
+                
+                // タッチイベント（モバイル用）
+                container.addEventListener('touchstart', function(e) {
+                    // デフォルトのスクロール動作を防止
+                    e.preventDefault();
+                    
+                    if (e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        handleTap(touch);
+                    }
+                });
+                
+                // タップ処理関数
+                function handleTap(e) {
+                    // クリック/タッチ位置を取得（コンテナ基準）
+                    const rect = container.getBoundingClientRect();
+                    const clientX = e.clientX || e.pageX;
+                    const clientY = e.clientY || e.pageY;
+                    const x = clientX - rect.left;
+                    const y = clientY - rect.top;
+                    
+                    // 画像の表示サイズを取得
+                    const displayedWidth = image.clientWidth;
+                    const displayedHeight = image.clientHeight;
+                    
+                    // 画像の実際のサイズを取得（画像がロードされた後）
+                    const naturalWidth = image.naturalWidth;
+                    const naturalHeight = image.naturalHeight;
+                    
+                    // 表示サイズから実際のサイズへの変換
+                    // vp_v1.pyでは window.left, window.top + 40, window.width - 40, window.height - 40 の領域をキャプチャしている
+                    // つまり、上下左右の端から40ピクセルずつ切り取っている
+                    // これを考慮して座標を計算する
+                    
+                    // まず、画像の実際のサイズに変換
+                    const actualX = Math.round((x / displayedWidth) * naturalWidth);
+                    const actualY = Math.round((y / displayedHeight) * naturalHeight);
+                    
+                    // vp_v1.pyでのキャプチャ方法に合わせた座標
+                    // BlueStacksウィンドウの座標系に変換（上下左右の端から40ピクセルずつ追加）
+                    const bluestacksX = actualX + 40; // 左端から40ピクセル追加
+                    const bluestacksY = actualY + 40; // 上端から40ピクセル追加
+                    
+                    // 表示サイズの座標を丸める（マーカー表示用）
+                    const displayX = Math.round(x);
+                    const displayY = Math.round(y);
+                    
+                    // 座標表示を更新（多言語対応）
+                    const tapText = currentLang === 'ja' ? 
+                        `タップ位置: BlueStacks座標(${bluestacksX}, ${bluestacksY})` :
+                        currentLang === 'zh' ? 
+                        `点击位置: BlueStacks坐标(${bluestacksX}, ${bluestacksY})` :
+                        `Tap position: BlueStacks(${bluestacksX}, ${bluestacksY})`;
+                    
+                    coordsDisplay.textContent = tapText;
+                    coordsDisplay.style.backgroundColor = '#d4edda';
+                    
+                    // マーカーを作成
+                    addMarker(x, y, markerCounter);
+                    
+                    // 画像をグレーアウトして追加のタップを受け付けないようにする
+                    container.classList.add('disabled');
+                    
+                    // スピナーとカウントダウンを表示
+                    const spinnerOverlay = document.getElementById('spinner-overlay');
+                    const countdownElement = document.getElementById('countdown');
+                    spinnerOverlay.style.display = 'flex';
+                    
+                    // カウントダウン開始
+                    let secondsLeft = 20;
+                    countdownElement.textContent = secondsLeft;
+                    
+                    const countdownInterval = setInterval(() => {
+                        secondsLeft--;
+                        countdownElement.textContent = secondsLeft;
+                        
+                        if (secondsLeft <= 0) {
+                            clearInterval(countdownInterval);
+                        }
+                    }, 1000);
+                    
+                    // BlueStacks座標をファイルに保存
+                    const coordinatesData = `${bluestacksX},${bluestacksY}`;
+                    uploadFile(coordinatesData, 'coordinates.txt')
+                        .then(() => {
+                            console.log('BlueStacks座標を保存しました: ' + coordinatesData);
+                            
+                            // 20秒後に自動的に画面をリロード
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 20000);
+                        })
+                        .catch(err => {
+                            console.error('座標の保存に失敗しました:', err);
+                        });
+                    
+                    // イベントリスナーを削除して追加のタップを受け付けないようにする
+                    container.removeEventListener('click', handleTap);
+                    container.removeEventListener('touchstart', handleTap);
+                }
+            }
+            
+            // マーカーを追加する関数
+            function addMarker(x, y, number) {
+                const marker = document.createElement('div');
+                marker.className = 'marker';
+                marker.style.left = `${x}px`;
+                marker.style.top = `${y}px`;
+                
+                // マーカーに番号を表示
+                marker.textContent = number;
+                
+                // マーカーをコンテナに追加
+                container.appendChild(marker);
+            }
+            
+            // 初期言語を設定
+            changeLanguage(currentLang);
+        });
+    </script>
+</head>
+<body>
+    <div id="language-buttons">
+        <button class="lang-btn ja" onclick="changeLanguage('ja')">日本語</button>
+        <button class="lang-btn zh" onclick="changeLanguage('zh')">中文</button>
+        <button class="lang-btn en" onclick="changeLanguage('en')">English</button>
+    </div>
+    <h1 id="title">468自動副大統領</h1>
+    <div id="maintenance" style="display: none;"></div>
+    <div id="notification"></div> 
+    <p><span id="status-label">稼働状況：</span><span id="status"></span></p>
+    <button id="appointButton">副大統領を一度だけ任命する</button>
+    <button id="kickButton" class="gray">候補者をキックする</button>
+    <button id="maintenanceButton" class="gray">メンテナンスモードにする</button>
+    
+    <!-- 画像タップ機能（contentが4の時のみ表示） -->
+    <div id="tap-section">
+        <h2 id="tap-instruction">タップ指示</h2>
+        <p id="tap-anywhere">画像の任意の場所をタップできます（20秒待ちます）</p>
+        
+        <div id="image-container">
+            <img id="game-image" src="screenshot2.jpg" alt="ゲームスクリーンショット">
+            <div id="spinner-overlay">
+                <div class="spinner"></div>
+                <div id="countdown">20</div>
+            </div>
+        </div>
+        
+        <div id="coordinates-display">ここにクリック位置が表示されます</div>
+    </div>
+    
+    <!-- 強制再起動ボタンを固定位置から通常のフローに変更 -->
+    <button id="restartButton" class="danger">強制再起動</button>
+    <button id="endMaintenanceButton" class="danger" style="display: none;">メンテナンスモード終了</button>
+    <div id="overlay"></div>
+</body>
+</html>
