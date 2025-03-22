@@ -324,7 +324,8 @@
                 restarting: "強制再起動中です。しばらくお待ちください。",
                 appointSet: "副大統領の任命を設定しました。少しお待ちください。",
                 kickSent: "キックコマンドを送信しました。少しお待ちください。",
-                settingFailed: "設定に失敗しました: "
+                settingFailed: "設定に失敗しました: ",
+                switchingToMaintenance: "メンテナンスモードに切り替えています。10秒待ってください。"
             },
             zh: {
                 title: "468自动副总统",
@@ -351,7 +352,8 @@
                 restarting: "强制重启中。请稍等。",
                 appointSet: "已设置副总统任命。请稍等。",
                 kickSent: "已发送踢出命令。请稍等。",
-                settingFailed: "设置失败: "
+                settingFailed: "设置失败: ",
+                switchingToMaintenance: "正在切换到维护模式。请等待10秒。"
             },
             en: {
                 title: "468 Auto Vice President",
@@ -378,7 +380,8 @@
                 restarting: "Force restarting. Please wait.",
                 appointSet: "Vice President appointment set. Please wait.",
                 kickSent: "Kick command sent. Please wait.",
-                settingFailed: "Setting failed: "
+                settingFailed: "Setting failed: ",
+                switchingToMaintenance: "Switching to maintenance mode. Please wait 10 seconds."
             }
         };
 
@@ -607,7 +610,7 @@
             document.querySelector('#maintenanceButton').addEventListener('click', () => {
                 // オーバーレイを表示
                 overlayDiv.style.display = 'flex';
-                overlayDiv.textContent = "メンテナンスモードに切り替えています。10秒待ってください。";
+                overlayDiv.textContent = translations[currentLang].switchingToMaintenance;
                 
                 // ボタンを無効化
                 document.querySelectorAll('button').forEach(button => button.disabled = true);
