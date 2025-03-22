@@ -605,12 +605,26 @@
             });
 
             document.querySelector('#maintenanceButton').addEventListener('click', () => {
+                // オーバーレイを表示
+                overlayDiv.style.display = 'flex';
+                overlayDiv.textContent = "メンテナンスモードに切り替えています。10秒待ってください。";
+                
+                // ボタンを無効化
+                document.querySelectorAll('button').forEach(button => button.disabled = true);
+                
                 uploadFile('4')
                     .then(() => {
-                        alert(translations[currentLang].maintenanceSet);
-                        window.location.reload();
+                        // 10秒後に自動的に画面をリロード
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 10000);
                     })
-                    .catch(err => alert(translations[currentLang].settingFailed + err));
+                    .catch(err => {
+                        alert(translations[currentLang].settingFailed + err);
+                        // エラーの場合はオーバーレイを非表示にしてボタンを有効化
+                        overlayDiv.style.display = 'none';
+                        document.querySelectorAll('button').forEach(button => button.disabled = false);
+                    });
             });
             
             document.querySelector('#endMaintenanceButton').addEventListener('click', () => {
@@ -665,17 +679,20 @@
                     
                     // 表示サイズから実際のサイズへの変換
                     // vp_v1.pyでは window.left, window.top + 40, window.width - 40, window.height - 40 の領域をキャプチャしている
-                    // つまり、上下左右の端から40ピクセルずつ切り取っている
-                    // これを考慮して座標を計算する
+                    // つまり、キャプチャ領域は実際のウィンドウより小さい
                     
-                    // まず、画像の実際のサイズに変換
-                    const actualX = Math.round((x / displayedWidth) * naturalWidth);
-                    const actualY = Math.round((y / displayedHeight) * naturalHeight);
+                    // キャプチャ領域のサイズを計算（実際のウィンドウサイズから両端40pxずつ引く）
+                    const captureWidth = naturalWidth - 80;  // 左右40pxずつ引く
+                    const captureHeight = naturalHeight - 80;  // 上下40pxずつ引く
                     
-                    // vp_v1.pyでのキャプチャ方法に合わせた座標
-                    // BlueStacksウィンドウの座標系に変換（上下左右の端から40ピクセルずつ追加）
-                    const bluestacksX = actualX + 40; // 左端から40ピクセル追加
-                    const bluestacksY = actualY + 40; // 上端から40ピクセル追加
+                    // クリック位置をキャプチャ領域の座標に変換
+                    // 表示されている画像はキャプチャ領域に対応するので、まずキャプチャ領域内の座標を計算
+                    const captureX = Math.round((x / displayedWidth) * captureWidth);
+                    const captureY = Math.round((y / displayedHeight) * captureHeight);
+                    
+                    // キャプチャ領域内の座標をBlueStacksウィンドウの座標に変換（40pxオフセット）
+                    const bluestacksX = captureX + 40;
+                    const bluestacksY = captureY + 40;
                     
                     // 表示サイズの座標を丸める（マーカー表示用）
                     const displayX = Math.round(x);
