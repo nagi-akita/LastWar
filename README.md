@@ -4,4 +4,4 @@ https://nagi-akita.github.io/LastWar/yamiichi.html
 
 https://nagi-akita.github.io/LastWar/flscreen.html
 
-https://nagi-akita.github.io/LastWar/firstlady468.html
+https://nagi-akita.github.io/LastWar/vp468.html
