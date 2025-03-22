@@ -649,15 +649,44 @@
                 // クリックイベント
                 container.addEventListener('click', handleTap);
                 
-                // タッチイベント（モバイル用）
+                // タッチイベント処理（モバイル用）
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let touchMoved = false;
+                const touchThreshold = 10; // タップとスクロールを区別するための閾値（ピクセル）
+                
                 container.addEventListener('touchstart', function(e) {
-                    // デフォルトのスクロール動作を防止
-                    e.preventDefault();
-                    
                     if (e.touches.length === 1) {
                         const touch = e.touches[0];
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        touchMoved = false;
+                    }
+                });
+                
+                container.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        const diffX = Math.abs(touch.clientX - touchStartX);
+                        const diffY = Math.abs(touch.clientY - touchStartY);
+                        
+                        // 一定以上の移動があればスクロールと判断
+                        if (diffX > touchThreshold || diffY > touchThreshold) {
+                            touchMoved = true;
+                        }
+                    }
+                });
+                
+                container.addEventListener('touchend', function(e) {
+                    // 移動が少ない場合のみタップとして処理
+                    if (!touchMoved) {
+                        const touch = {
+                            clientX: touchStartX,
+                            clientY: touchStartY
+                        };
                         handleTap(touch);
                     }
+                    // それ以外はスクロールとして処理（何もしない）
                 });
                 
                 // タップ処理関数
@@ -677,22 +706,22 @@
                     const naturalWidth = image.naturalWidth;
                     const naturalHeight = image.naturalHeight;
                     
-                    // 表示サイズから実際のサイズへの変換
-                    // vp_v1.pyでは window.left, window.top + 40, window.width - 40, window.height - 40 の領域をキャプチャしている
-                    // つまり、キャプチャ領域は実際のウィンドウより小さい
+                    // BlueStacksの実際の画像サイズ（クライアント領域）
+                    const BLUESTACKS_IMAGE_WIDTH = 384;    // 画像の幅
+                    const BLUESTACKS_IMAGE_HEIGHT = 687;   // 画像の高さ
                     
-                    // キャプチャ領域のサイズを計算（実際のウィンドウサイズから両端40pxずつ引く）
-                    const captureWidth = naturalWidth - 80;  // 左右40pxずつ引く
-                    const captureHeight = naturalHeight - 80;  // 上下40pxずつ引く
+                    // 表示画像上のクリック位置を、実際の画像サイズに変換
+                    const imageX = Math.round((x / displayedWidth) * BLUESTACKS_IMAGE_WIDTH);
+                    const imageY = Math.round((y / displayedHeight) * BLUESTACKS_IMAGE_HEIGHT);
                     
-                    // クリック位置をキャプチャ領域の座標に変換
-                    // 表示されている画像はキャプチャ領域に対応するので、まずキャプチャ領域内の座標を計算
-                    const captureX = Math.round((x / displayedWidth) * captureWidth);
-                    const captureY = Math.round((y / displayedHeight) * captureHeight);
+                    // BlueStacksウィンドウ座標系に変換（y40をプラス）
+                    const bluestacksX = imageX;
+                    const bluestacksY = imageY + 40;
                     
-                    // キャプチャ領域内の座標をBlueStacksウィンドウの座標に変換（40pxオフセット）
-                    const bluestacksX = captureX + 40;
-                    const bluestacksY = captureY + 40;
+                    // デバッグ情報をコンソールに出力
+                    console.log(`表示サイズ: ${displayedWidth}x${displayedHeight}`);
+                    console.log(`クリック位置(表示): (${Math.round(x)}, ${Math.round(y)})`);
+                    console.log(`BlueStacks座標: (${bluestacksX}, ${bluestacksY})`);
                     
                     // 表示サイズの座標を丸める（マーカー表示用）
                     const displayX = Math.round(x);
