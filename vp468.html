@@ -732,10 +732,10 @@
                     
                     // 座標表示を更新（多言語対応）
                     const tapText = currentLang === 'ja' ? 
-                        `タップ位置: BlueStacks座標(${bluestacksX}, ${bluestacksY})` :
+                        `タップ位置: 座標(${bluestacksX}, ${bluestacksY})` :
                         currentLang === 'zh' ? 
-                        `点击位置: BlueStacks坐标(${bluestacksX}, ${bluestacksY})` :
-                        `Tap position: BlueStacks(${bluestacksX}, ${bluestacksY})`;
+                        `点击位置: 坐标(${bluestacksX}, ${bluestacksY})` :
+                        `Tap position (${bluestacksX}, ${bluestacksY})`;
                     
                     coordsDisplay.textContent = tapText;
                     coordsDisplay.style.backgroundColor = '#d4edda';
@@ -770,13 +770,71 @@
                         .then(() => {
                             console.log('BlueStacks座標を保存しました: ' + coordinatesData);
                             
-                            // 20秒後に自動的に画面をリロード
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 20000);
+                            // 現在の最新画像URLを取得
+                            fetch(s3BaseUrl + 'list.txt')
+                                .then(response => response.text())
+                                .then(data => {
+                                    const lines = data.trim().split('\n');
+                                    let currentImageUrl = '';
+                                    
+                                    if (lines.length > 0) {
+                                        const [title, fileName] = lines[0].split(' ');
+                                        currentImageUrl = fileName.trim();
+                                    }
+                                    
+                                    console.log('現在の最新画像URL:', currentImageUrl);
+                                    
+                                    // 一定間隔でlist.txtをチェックし、画像が更新されたらリロード
+                                    let checkCount = 0;
+                                    const maxChecks = 10; // 20秒間で10回チェック（2秒ごと）
+                                    
+                                    const checkInterval = setInterval(() => {
+                                        checkCount++;
+                                        
+                                        // list.txtを取得して最新画像をチェック
+                                        fetch(s3BaseUrl + 'list.txt')
+                                            .then(response => response.text())
+                                            .then(newData => {
+                                                const newLines = newData.trim().split('\n');
+                                                
+                                                if (newLines.length > 0) {
+                                                    const [newTitle, newFileName] = newLines[0].split(' ');
+                                                    const newImageUrl = newFileName.trim();
+                                                    
+                                                    // 最新画像が変わっていたらリロード
+                                                    if (newImageUrl !== currentImageUrl && newImageUrl !== '') {
+                                                        console.log('画像が更新されました。リロードします。');
+                                                        clearInterval(checkInterval);
+                                                        window.location.reload();
+                                                    }
+                                                }
+                                                
+                                                // 最大チェック回数に達したらリロード
+                                                if (checkCount >= maxChecks) {
+                                                    console.log('20秒経過しました。リロードします。');
+                                                    clearInterval(checkInterval);
+                                                    window.location.reload();
+                                                }
+                                            })
+                                            .catch(err => {
+                                                console.error('list.txtの読み込みに失敗しました:', err);
+                                            });
+                                    }, 2000); // 2秒ごとにチェック
+                                })
+                                .catch(err => {
+                                    console.error('list.txtの読み込みに失敗しました:', err);
+                                    // エラーの場合は20秒後に自動的に画面をリロード
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 20000);
+                                });
                         })
                         .catch(err => {
                             console.error('座標の保存に失敗しました:', err);
+                            // エラーの場合は20秒後に自動的に画面をリロード
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 20000);
                         });
                     
                     // イベントリスナーを削除して追加のタップを受け付けないようにする
